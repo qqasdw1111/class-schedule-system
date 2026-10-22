@@ -1,0 +1,24 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio and VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Test results
+TestResults/
+
+# Logs
+*.log
+
+# Local environment files and secrets
+.env
+*.secret
+secrets.json
+
+# OS temporary files
+Thumbs.db
+.DS_Store
