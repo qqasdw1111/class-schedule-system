@@ -1,0 +1,59 @@
+
+@startuml
+title Component Diagram - Class Schedule System
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Class Schedule System" {
+
+    package "Presentation Layer" {
+        [Web Interface] as UI
+    }
+
+    package "Application Layer" {
+        [Schedule Controller] as Controller
+        [User Controller] as UserController
+    }
+
+    package "Business Logic Layer" {
+        [Schedule Service] as Service
+        [Validation Service] as Validation
+        [Conflict Checker] as Checker
+        [User Service] as UserService
+    }
+
+    package "Data Access Layer" {
+        [Schedule Repository] as Repository
+        [User Repository] as UserRepository
+    }
+
+    database "Class Schedule Database" as DB
+
+    interface "IScheduleService" as ISchedule
+    interface "IValidationService" as IValidation
+    interface "IScheduleRepository" as IRepository
+    interface "IUserService" as IUser
+}
+
+UI --> Controller : HTTP requests
+UI --> UserController : User requests
+
+Controller ..> ISchedule : uses
+Service - ISchedule : implements
+
+Service ..> IValidation : uses
+Validation - IValidation : implements
+
+Service ..> IRepository : uses
+Repository - IRepository : implements
+
+UserController ..> IUser : uses
+UserService - IUser : implements
+
+Service --> Checker : Check conflicts
+
+Repository --> DB : Read / Write
+UserRepository --> DB : Read / Write
+
+@enduml
