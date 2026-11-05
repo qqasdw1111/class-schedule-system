@@ -1,0 +1,45 @@
+
+@startuml
+title Sequence Diagram - Create Schedule
+
+actor "Department Staff" as Staff
+boundary "Schedule Form" as UI
+control "Schedule Controller" as Controller
+control "Schedule Service" as Service
+control "Conflict Checker" as Checker
+database "Schedule Repository" as Repository
+
+Staff -> UI: Open schedule creation form
+UI --> Staff: Display empty form
+
+Staff -> UI: Enter lesson information
+Staff -> UI: Submit schedule
+
+UI -> Controller: createSchedule(lessonData)
+Controller -> Service: validateData(lessonData)
+
+alt Invalid data
+    Service --> Controller: Validation error
+    Controller --> UI: Display validation error
+    UI --> Staff: Show error message
+else Valid data
+    Service -> Checker: checkConflicts(lessonData)
+    Checker -> Repository: findConflicts(lessonData)
+    Repository --> Checker: Conflict results
+
+    alt Conflicts found
+        Checker --> Service: Conflicts detected
+        Service --> Controller: Conflict error
+        Controller --> UI: Display conflict message
+        UI --> Staff: Show conflict details
+    else No conflicts
+        Checker --> Service: No conflicts
+        Service -> Repository: saveSchedule(lessonData)
+        Repository --> Service: Schedule saved
+        Service --> Controller: Creation successful
+        Controller --> UI: Display success message
+        UI --> Staff: Show confirmation
+    end
+end
+
+@enduml
