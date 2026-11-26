@@ -2,6 +2,7 @@
 using ClassScheduleSystem.Application.Services;
 using ClassScheduleSystem.Infrastructure.Data;
 using ClassScheduleSystem.Infrastructure.Repositories;
+using ClassScheduleSystem.Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using ClassScheduleSystem.Infrastructure.Exceptions;
 
 namespace ClassScheduleSystem.Infrastructure.Data;
 
@@ -11,9 +12,14 @@ public class DatabaseInitializer
         _connectionString = connectionString;
     }
 
-    public async Task InitializeAsync()
+   
+public async Task InitializeAsync()
+{
+    try
     {
-        await using var connection = new SqliteConnection(_connectionString);
+        await using var connection =
+            new SqliteConnection(_connectionString);
+
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -34,4 +40,11 @@ public class DatabaseInitializer
 
         await command.ExecuteNonQueryAsync();
     }
+    catch (SqliteException ex)
+    {
+        throw new DataAccessException(
+            "Could not initialize the database.", ex);
+    }
 }
+}
+
