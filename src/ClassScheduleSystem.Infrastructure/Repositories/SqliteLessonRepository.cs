@@ -1,6 +1,7 @@
 ﻿using ClassScheduleSystem.Application.Interfaces;
 using ClassScheduleSystem.Domain.Entities;
 using Microsoft.Data.Sqlite;
+using ClassScheduleSystem.Infrastructure.Exceptions;
 
 namespace ClassScheduleSystem.Infrastructure.Repositories;
 
@@ -13,7 +14,10 @@ public class SqliteLessonRepository : ILessonRepository
         _connectionString = connectionString;
     }
 
-    public async Task AddAsync(Lesson lesson)
+  
+public async Task AddAsync(Lesson lesson)
+{
+    try
     {
         await using var connection = new SqliteConnection(_connectionString);
         await connection.OpenAsync();
@@ -39,6 +43,13 @@ public class SqliteLessonRepository : ILessonRepository
 
         await command.ExecuteNonQueryAsync();
     }
+    catch (SqliteException ex)
+    {
+        throw new DataAccessException(
+            "Could not save the lesson to the database.", ex);
+    }
+}
+
 
     public Task<IReadOnlyList<Lesson>> GetByGroupIdAsync(int groupId)
     {
@@ -50,8 +61,11 @@ public class SqliteLessonRepository : ILessonRepository
         return GetLessonsAsync("TeacherId", teacherId);
     }
 
-    private async Task<IReadOnlyList<Lesson>> GetLessonsAsync(
-        string column, int id)
+  
+private async Task<IReadOnlyList<Lesson>> GetLessonsAsync(
+    string column, int id)
+{
+    try
     {
         var lessons = new List<Lesson>();
 
@@ -89,13 +103,26 @@ public class SqliteLessonRepository : ILessonRepository
 
         return lessons;
     }
-
-    public async Task<bool> HasConflictsAsync(Lesson lesson)
+    catch (SqliteException ex)
     {
-        await using var connection = new SqliteConnection(_connectionString);
+        throw new DataAccessException(
+            "Could not retrieve lessons from the database.", ex);
+    }
+}
+
+
+
+public async Task<bool> HasConflictsAsync(Lesson lesson)
+{
+    try
+    {
+        await using var connection =
+            new SqliteConnection(_connectionString);
+
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
+
         command.CommandText = """
             SELECT COUNT(*)
             FROM Lessons
@@ -109,14 +136,29 @@ public class SqliteLessonRepository : ILessonRepository
               );
             """;
 
-        command.Parameters.AddWithValue("$date", lesson.Date.ToString("yyyy-MM-dd"));
-        command.Parameters.AddWithValue("$start", lesson.StartTime.ToString("HH:mm"));
-        command.Parameters.AddWithValue("$end", lesson.EndTime.ToString("HH:mm"));
-        command.Parameters.AddWithValue("$teacher", lesson.TeacherId);
-        command.Parameters.AddWithValue("$group", lesson.GroupId);
-        command.Parameters.AddWithValue("$classroom", lesson.ClassroomId);
+        command.Parameters.AddWithValue(
+            "$date", lesson.Date.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue(
+            "$start", lesson.StartTime.ToString("HH:mm"));
+        command.Parameters.AddWithValue(
+            "$end", lesson.EndTime.ToString("HH:mm"));
+        command.Parameters.AddWithValue(
+            "$teacher", lesson.TeacherId);
+        command.Parameters.AddWithValue(
+            "$group", lesson.GroupId);
+        command.Parameters.AddWithValue(
+            "$classroom", lesson.ClassroomId);
 
-        var count = (long)(await command.ExecuteScalarAsync() ?? 0L);
+        var count =
+            (long)(await command.ExecuteScalarAsync() ?? 0L);
+
         return count > 0;
     }
+    catch (SqliteException ex)
+    {
+        throw new DataAccessException(
+            "Could not check schedule conflicts in the database.", ex);
+    }
+}
+
 }
