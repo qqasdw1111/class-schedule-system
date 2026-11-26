@@ -127,8 +127,8 @@ public async Task<bool> HasConflictsAsync(Lesson lesson)
             SELECT COUNT(*)
             FROM Lessons
             WHERE Date = $date
-              AND StartTime < $end
-              AND EndTime > $start
+            AND time(StartTime) < time($end)
+            AND time(EndTime) > time($start)
               AND (
                   TeacherId = $teacher
                   OR GroupId = $group
