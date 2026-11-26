@@ -22,3 +22,5 @@ secrets.json
 # OS temporary files
 Thumbs.db
 .DS_Store
+# Local SQLite databases
+*.db
